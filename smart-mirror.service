@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi
-ExecStart=/home/pi/smart-mirror.sh
+User=nojus
+WorkingDirectory=/home/nojus
+ExecStart=/home/nojus/smart-mirror.sh
 Restart=on-failure
 RestartSec=10
 

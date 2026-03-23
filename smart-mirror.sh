@@ -164,7 +164,7 @@ main() {
     --disable-infobars
     --no-proxy-server
     --kiosk
-    --app=http://localhost:5173
+    --app=http://localhost:5000/mirror/
   )
 
   log "Launching Chromium (${CHROMIUM_CMD}) in kiosk mode..."

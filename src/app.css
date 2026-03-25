@@ -20,6 +20,12 @@ html, body {
   cursor: none;
 }
 
+/* Stable-width numerals on all clock/time elements */
+.clock, .time, .date-time, [class*="clock"], [class*="time"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
 #app {
   width: 100%;
   height: 100%;

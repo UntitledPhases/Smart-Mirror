@@ -9,12 +9,9 @@ export function formatTime(date) {
 }
 
 export function formatDateLong(date) {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
+  const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(date);
+  const rest    = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
+  return `${weekday}, ${rest}`;
 }
 
 export const time = readable({ now: new Date() }, (set) => {

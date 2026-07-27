@@ -1,32 +1,61 @@
 # Smart Mirror
 
-Minimal Svelte + Vite smart-mirror UI with home and dashboard screens.
+Svelte/Vite kiosk UI for the Raspberry Pi mirror.
 
-## Quickstart
+The Pi serves the built frontend from `~/Smart-Mirror/dist` through the
+`eip-platform` Flask app at `/mirror/`.
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-`npm run dev` starts the app at http://localhost:5173.
+The dev server runs at `http://localhost:5173`.
 
-For a production build:
+## Build
 
 ```bash
 npm run build
-npm run preview
 ```
 
-## Routes
+The production build is written to `dist/` with Vite base path `/mirror/`.
 
-- `/` – Home screen showing centered date and time.
-- `/dashboard` – Dashboard with date top-center, time top-right, and Daily/Weekly/Monthly sections.
+## Data contract
+
+The frontend polls:
+
+```text
+/mirror/api/data
+```
+
+Expected shape:
+
+```json
+{
+  "goals": [],
+  "calendar": [],
+  "mirror_notes": [],
+  "last_updated": null,
+  "error": null
+}
+```
+
+Runtime data lives on the Pi at:
+
+```text
+~/mirror-data/mirror.json
+```
+
+Update mirror content by copying a new JSON file to that path. No Notion,
+Canvas, iCal, or frontend rebuild is required for data-only updates.
 
 ## Navigation
 
-- Clicking anywhere on the Home screen takes you to the dashboard.
-- The dashboard monitors mouse movement and clicks; after two minutes of inactivity it automatically returns to the home screen.
-- Any activity resets the timer.
+- Arrow right/down: next panel
+- Arrow left/up: previous panel
+- `R`: refresh local mirror data immediately
+- Two minutes of inactivity: return to Home
 
-Time and date update every second via a Svelte store.
+Panels: Home, Focus, Today, Week, Month.

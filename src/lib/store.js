@@ -5,15 +5,16 @@
 import { writable } from 'svelte/store';
 import { API_BASE } from './api.js';
 
-const POLL_INTERVAL_MS = 60_000;
+const POLL_INTERVAL_MS = 15_000;
 
 const _empty = { goals: [], calendar: [], mirror_notes: [], last_updated: null, error: null };
 
 export const mirrorData = writable({ ..._empty });
 
-async function _fetch() {
+export async function refreshMirrorData() {
   try {
     const resp = await fetch(`${API_BASE}/data`);
+    if (!resp.ok) throw new Error(`Mirror API ${resp.status}`);
     const data = await resp.json();
     mirrorData.set(data);
   } catch (e) {
@@ -22,5 +23,5 @@ async function _fetch() {
 }
 
 // Start polling immediately on import — store lives for the app lifetime.
-_fetch();
-setInterval(_fetch, POLL_INTERVAL_MS);
+refreshMirrorData();
+setInterval(refreshMirrorData, POLL_INTERVAL_MS);

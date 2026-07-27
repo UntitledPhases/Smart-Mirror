@@ -1,10 +1,16 @@
 <script>
+  import { onMount } from 'svelte';
+  import AnimatedClock from './ui/AnimatedClock.svelte';
+  import { mirrorData } from '../lib/store.js';
+  import { upcomingEvents, eventTimeLabel } from '../lib/calendar.js';
   import { getWeather, weatherIcon } from '../lib/weather.js';
   import { getQuoteOfDay } from '../lib/quotes.js';
-  import { onMount } from 'svelte';
 
   let weather = null;
   const quote = getQuoteOfDay();
+
+  $: events = upcomingEvents($mirrorData.calendar || [], new Date(), 3);
+  $: notes = $mirrorData.mirror_notes || [];
 
   onMount(() => {
     getWeather().then(w => weather = w);
@@ -13,64 +19,143 @@
   });
 </script>
 
-<!-- Clock lives in App.svelte (fixed, centered). This page owns only weather + quote. -->
-<div class="home-lower">
-  {#if weather}
-    <div class="weather">
-      <span class="weather-icon">{weatherIcon(weather.weathercode)}</span>
-      <span class="weather-temp">{Math.round(weather.temperature)}°F</span>
-    </div>
-  {/if}
+<div class="home-grid">
+  <section class="hero">
+    <p class="kicker">rasplient</p>
+    <AnimatedClock
+      align="center"
+      timeSize="clamp(4.3rem, 13vw, 9.4rem)"
+      dateSize="clamp(1.1rem, 2.6vw, 2rem)"
+    />
 
-  {#if quote}
-    <div class="quote">
-      <p class="quote-text">"{quote.text}"</p>
-      <p class="quote-author">— {quote.author}</p>
+    <div class="weather-quote">
+      {#if weather}
+        <div class="weather">
+          <span>{weatherIcon(weather.weathercode)}</span>
+          <span>{Math.round(weather.temperature)}°F</span>
+        </div>
+      {/if}
+
+      {#if quote}
+        <p class="quote">“{quote.text}” <span>— {quote.author}</span></p>
+      {/if}
     </div>
-  {/if}
+  </section>
+
+  <aside class="side-stack">
+    <div class="mirror-card home-card">
+      <p class="kicker">Next</p>
+      {#if events.length}
+        <div class="upcoming-list">
+          {#each events as evt}
+            <div class="upcoming-item">
+              <span class="event-time">{eventTimeLabel(evt)}</span>
+              <span class="event-name">{evt.event}</span>
+              <span class="event-meta">{evt.date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="empty-state">No upcoming events</p>
+      {/if}
+    </div>
+
+    <div class="mirror-card home-card">
+      <p class="kicker">Notes</p>
+      {#if notes.length}
+        <ul class="notes">
+          {#each notes.slice(0, 3) as note}
+            <li>{note}</li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="empty-state">No notes loaded</p>
+      {/if}
+    </div>
+  </aside>
 </div>
 
 <style>
-  /* Anchored to the lower portion of the screen — clear of the centered clock */
-  .home-lower {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
+  .home-grid {
+    width: min(1180px, 94vw);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 25vw);
+    gap: clamp(1rem, 3vw, 2.2rem);
     align-items: center;
-    gap: 1.25rem;
-    padding: 0 2rem 3.5rem;
+  }
+
+  .hero {
+    display: grid;
+    justify-items: center;
+    gap: clamp(0.65rem, 1.6vw, 1.1rem);
+    text-align: center;
+  }
+
+  .weather-quote {
+    display: grid;
+    justify-items: center;
+    gap: 0.85rem;
+    max-width: 660px;
+    margin-top: 0.5rem;
   }
 
   .weather {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: clamp(20px, 3.5vw, 30px);
-    font-weight: 200;
-    opacity: 0.55;
-    font-variant-numeric: tabular-nums;
+    gap: 0.6rem;
+    color: var(--muted);
+    font-size: clamp(1.15rem, 2.3vw, 1.75rem);
+    font-weight: 250;
   }
-
-  .weather-icon { font-size: 1.2em; }
 
   .quote {
-    max-width: 560px;
-    text-align: center;
+    color: var(--faint);
+    font-size: clamp(0.8rem, 1.55vw, 1.03rem);
+    line-height: 1.7;
   }
 
-  .quote-text {
-    font-size: clamp(13px, 2.2vw, 18px);
-    font-style: italic;
-    opacity: 0.38;
-    line-height: 1.65;
+  .quote span {
+    color: rgba(232, 243, 248, 0.24);
   }
 
-  .quote-author {
-    font-size: clamp(11px, 1.6vw, 14px);
-    opacity: 0.25;
-    margin-top: 0.4rem;
+  .side-stack {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .home-card {
+    padding: clamp(0.95rem, 1.7vw, 1.35rem);
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .upcoming-list,
+  .notes {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .upcoming-item {
+    display: grid;
+    gap: 0.1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .upcoming-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .notes {
+    list-style: none;
+    color: var(--muted);
+    font-size: clamp(0.82rem, 1.35vw, 0.95rem);
+    line-height: 1.45;
+  }
+
+  .notes li {
+    padding-left: 0.85rem;
+    border-left: 2px solid rgba(101, 217, 255, 0.35);
   }
 </style>
